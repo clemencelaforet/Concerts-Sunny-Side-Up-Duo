@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concerts</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f5f4f0; color: #1a1a18; height: 100dvh; display: flex; flex-direction: column; }
+
+  /* ── En-tête ── */
+  header { background: #fff; border-bottom: 1px solid #e2e0d8; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 { font-size: 16px; font-weight: 600; white-space: nowrap; }
+
+  /* ── Panneau de filtres ── */
+  #filters { background: #fff; border-bottom: 1px solid #e2e0d8; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 3px; }
+  .filter-group label { font-size: 11px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .filter-group input, .filter-group select {
+    font-size: 13px; padding: 5px 8px; border: 1px solid #d4d2ca; border-radius: 6px;
+    background: #faf9f7; color: #1a1a18; height: 32px;
+  }
+  .filter-group select { min-width: 130px; }
+  #btn-passés { font-size: 12px; padding: 5px 10px; height: 32px; border: 1px solid #d4d2ca; border-radius: 6px; background: #faf9f7; cursor: pointer; color: #555; white-space: nowrap; }
+  #btn-passés.actif { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+  #compteur { font-size: 12px; color: #888; align-self: center; white-space: nowrap; margin-left: auto; }
+
+  /* ── Carte ── */
+  #map { flex: 1; }
+
+  /* ── Popup Leaflet ── */
+  .popup-inner { min-width: 200px; max-width: 280px; font-size: 13px; line-height: 1.5; }
+  .popup-inner .p-nom { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .popup-inner .p-dates { color: #555; margin-bottom: 6px; }
+  .popup-inner .p-type { display: inline-block; font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 99px; margin-bottom: 8px; }
+  .popup-inner .p-adresse { color: #444; margin-bottom: 8px; }
+  .popup-inner .p-liens a { display: inline-block; margin-right: 6px; margin-bottom: 4px; font-size: 12px; color: #185FA5; text-decoration: none; border: 1px solid #b5d4f4; border-radius: 4px; padding: 2px 7px; }
+  .popup-inner .p-liens a:hover { background: #e6f1fb; }
+  .popup-passé .p-nom { color: #888; }
+
+  /* ── Marqueurs passés grisés ── */
+  .marker-passé { filter: grayscale(1) opacity(0.55); }
+
+  /* ── Loader ── */
+  #loader { position: absolute; inset: 0; background: rgba(245,244,240,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; font-size: 14px; color: #555; }
+  #loader.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="titre-groupe">🎵 Concerts</h1>
+</header>
+
+<div id="filters">
+  <div class="filter-group">
+    <label>Du</label>
+    <input type="date" id="f-date-debut">
+  </div>
+  <div class="filter-group">
+    <label>Au</label>
+    <input type="date" id="f-date-fin">
+  </div>
+  <div class="filter-group">
+    <label>Pays</label>
+    <select id="f-pays"><option value="">Tous</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Région</label>
+    <select id="f-region"><option value="">Toutes</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Département</label>
+    <select id="f-dept"><option value="">Tous</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Type</label>
+    <select id="f-type"><option value="">Tous</option></select>
+  </div>
+  <button id="btn-passés">Inclure les passés</button>
+  <span id="compteur"></span>
+</div>
+
+<div id="map"></div>
+<div id="loader">Chargement des concerts…</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  ⚙️  CONFIGURATION — à modifier
+// ══════════════════════════════════════════════════
+const CONFIG = {
+  // ID de ton Google Sheets (dans l'URL : /d/XXXXXXXX/edit)
+  SHEET_ID: "1mlbhxVoRgSzmHFcaEqYQSDgLmYHS1YBKvJMJmX62Bys",
+
+  // Nom de l'onglet exact (sensible à la casse)
+  SHEET_NAME: "Concerts",
+
+  // Nom de ton groupe (affiché dans l'en-tête)
+  NOM_GROUPE: "Sunny Side Up Duo",
+
+  // Couleurs par type de concert (optionnel, complète selon tes valeurs)
+  COULEURS_TYPE: {
+    "Festival":  "#D85A30",
+    "Concert":   "#185FA5",
+    "Résidence": "#1D9E75",
+    "Showcase":  "#7F77DD",
+    "default":   "#888780"
+  }
+};
+// ══════════════════════════════════════════════════
+
+document.querySelector("#titre-groupe").textContent = "🎵 " + CONFIG.NOM_GROUPE;
+
+// ── Initialisation de la carte ──
+const map = L.map("map").setView([46.5, 2.5], 6);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxZoom: 18
+}).addTo(map);
+
+// ── État global ──
+let tousLesConcerts = [];
+let afficherPassés  = false;
+let markersLayer    = L.layerGroup().addTo(map);
+
+// ── Chargement depuis Google Sheets (CSV public) ──
+async function chargerDonnees() {
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}`;
+  try {
+    const res  = await fetch(url);
+    const text = await res.text();
+    tousLesConcerts = parseCSV(text);
+    remplirFiltres();
+    appliquerFiltres();
+    document.getElementById("loader").classList.add("hidden");
+  } catch(e) {
+    document.getElementById("loader").textContent = "Erreur de chargement. Vérifie l'ID du Sheets et que le partage est 'Lecteur'.";
+    console.error(e);
+  }
+}
+
+// ── Parsing CSV simple (gère les guillemets) ──
+function parseCSV(text) {
+  const lines  = text.trim().split("\n");
+  const result = [];
+  // Ligne 0 = en-tête, on saute
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitCSVLine(lines[i]);
+    const dateDebut = cols[0]?.trim().replace(/"/g,"") || "";
+    const dateFin   = cols[1]?.trim().replace(/"/g,"") || "";
+    const nom       = cols[3]?.trim().replace(/"/g,"") || "";
+    const ville     = cols[4]?.trim().replace(/"/g,"") || "";
+    const adresse   = cols[5]?.trim().replace(/"/g,"") || "";
+    const dept      = cols[6]?.trim().replace(/"/g,"") || "";
+    const region    = cols[7]?.trim().replace(/"/g,"") || "";
+    const pays      = cols[8]?.trim().replace(/"/g,"") || "";
+    const latRaw    = cols[9]?.trim().replace(/"/g,"") || "";
+    const lngRaw    = cols[10]?.trim().replace(/"/g,"") || "";
+    const type      = cols[11]?.trim().replace(/"/g,"") || "";
+    const liens     = cols[25]?.trim().replace(/"/g,"") || ""; // colonne Z = index 25
+
+    const lat = parseFloat(latRaw.replace(",","."));
+    const lng = parseFloat(lngRaw.replace(",","."));
+
+    if (!nom || isNaN(lat) || isNaN(lng)) continue;
+
+    result.push({ dateDebut, dateFin, nom, ville, adresse, dept, region, pays, lat, lng, type, liens });
+  }
+  return result;
+}
+
+function splitCSVLine(line) {
+  const result = []; let cur = ""; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { inQ = !inQ; }
+    else if (line[i] === "," && !inQ) { result.push(cur); cur = ""; }
+    else cur += line[i];
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── Remplissage des listes déroulantes ──
+function remplirFiltres() {
+  const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
+
+  const pays    = uniq(tousLesConcerts.map(c => c.pays));
+  const regions = uniq(tousLesConcerts.map(c => c.region));
+  const types   = uniq(tousLesConcerts.map(c => c.type));
+
+  remplirSelect("f-pays",   pays);
+  remplirSelect("f-region", regions);
+  remplirSelect("f-type",   types);
+}
+
+function remplirSelect(id, valeurs) {
+  const sel = document.getElementById(id);
+  const actuelle = sel.value;
+  // Garde l'option "Tous"
+  while (sel.options.length > 1) sel.remove(1);
+  valeurs.forEach(v => {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = v;
+    sel.appendChild(o);
+  });
+  if (actuelle) sel.value = actuelle;
+}
+
+// ── Mise à jour des départements selon la région choisie ──
+function mettreAJourDepts() {
+  const regionChoisie = document.getElementById("f-region").value;
+  const depts = [...new Set(
+    tousLesConcerts
+      .filter(c => !regionChoisie || c.region === regionChoisie)
+      .map(c => c.dept)
+      .filter(Boolean)
+  )].sort();
+  remplirSelect("f-dept", depts);
+}
+
+// ── Application de tous les filtres ──
+function appliquerFiltres() {
+  const fDateDebut = document.getElementById("f-date-debut").value;
+  const fDateFin   = document.getElementById("f-date-fin").value;
+  const fPays      = document.getElementById("f-pays").value;
+  const fRegion    = document.getElementById("f-region").value;
+  const fDept      = document.getElementById("f-dept").value;
+  const fType      = document.getElementById("f-type").value;
+  const aujourd   = new Date(); aujourd.setHours(0,0,0,0);
+
+  const filtres = tousLesConcerts.filter(c => {
+    const dDebut = parseDate(c.dateDebut);
+    const dFin   = parseDate(c.dateFin) || dDebut;
+    const estPassé = dFin < aujourd;
+
+    if (!afficherPassés && estPassé) return false;
+    if (fDateDebut && dDebut < new Date(fDateDebut)) return false;
+    if (fDateFin   && dDebut > new Date(fDateFin))   return false;
+    if (fPays   && c.pays   !== fPays)   return false;
+    if (fRegion && c.region !== fRegion) return false;
+    if (fDept   && c.dept   !== fDept)   return false;
+    if (fType   && c.type   !== fType)   return false;
+    return true;
+  });
+
+  afficherMarqueurs(filtres);
+  document.getElementById("compteur").textContent = `${filtres.length} concert${filtres.length > 1 ? "s" : ""}`;
+}
+
+// ── Affichage des marqueurs ──
+function afficherMarqueurs(concerts) {
+  markersLayer.clearLayers();
+  concerts.forEach(c => {
+    const aujourd = new Date(); aujourd.setHours(0,0,0,0);
+    const dFin    = parseDate(c.dateFin) || parseDate(c.dateDebut);
+    const estPassé = dFin < aujourd;
+    const couleur  = CONFIG.COULEURS_TYPE[c.type] || CONFIG.COULEURS_TYPE["default"];
+
+    const icon = L.divIcon({
+      className: "",
+      html: `<div style="
+        width:14px; height:14px; border-radius:50%;
+        background:${estPassé ? "#aaa" : couleur};
+        border:2px solid ${estPassé ? "#888" : "#fff"};
+        box-shadow:0 1px 3px rgba(0,0,0,.3);
+        opacity:${estPassé ? 0.5 : 1};
+      "></div>`,
+      iconSize: [14,14], iconAnchor: [7,7]
+    });
+
+    const marker = L.marker([c.lat, c.lng], { icon });
+
+    // Construction du popup
+    const dates = c.dateFin && c.dateFin !== c.dateDebut
+      ? `${formatDate(c.dateDebut)} → ${formatDate(c.dateFin)}`
+      : formatDate(c.dateDebut);
+
+    const adresseFull = [c.adresse, c.ville, c.dept, c.region, c.pays].filter(Boolean).join(", ");
+
+    const liensHtml = c.liens
+      ? c.liens.split(/[|;,\n]+/).map(l => {
+          l = l.trim();
+          if (!l) return "";
+          const label = l.includes("billet") ? "Billetterie" : l.includes("facebook") ? "Facebook" : "Lien";
+          return `<a href="${l}" target="_blank" rel="noopener">${label}</a>`;
+        }).join("") : "";
+
+    const couleurType = CONFIG.COULEURS_TYPE[c.type] || CONFIG.COULEURS_TYPE["default"];
+    const popupHTML = `
+      <div class="popup-inner ${estPassé ? "popup-passé" : ""}">
+        <div class="p-nom">${c.nom}</div>
+        <div class="p-dates">${dates}</div>
+        ${c.type ? `<span class="p-type" style="background:${couleurType}22;color:${couleurType}">${c.type}</span>` : ""}
+        <div class="p-adresse">${adresseFull}</div>
+        ${liensHtml ? `<div class="p-liens">${liensHtml}</div>` : ""}
+      </div>`;
+
+    marker.bindPopup(popupHTML, { maxWidth: 300 });
+    markersLayer.addLayer(marker);
+  });
+}
+
+// ── Utilitaires dates ──
+function parseDate(str) {
+  if (!str) return null;
+  // Gère DD/MM/YYYY, YYYY-MM-DD, et formats Google Sheets
+  const d1 = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (d1) return new Date(`${d1[3]}-${d1[2]}-${d1[1]}`);
+  const d2 = new Date(str);
+  return isNaN(d2) ? null : d2;
+}
+
+function formatDate(str) {
+  const d = parseDate(str);
+  if (!d) return str;
+  return d.toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
+}
+
+// ── Événements ──
+document.getElementById("f-region").addEventListener("change", () => {
+  mettreAJourDepts();
+  appliquerFiltres();
+});
+["f-date-debut","f-date-fin","f-pays","f-dept","f-type"].forEach(id =>
+  document.getElementById(id).addEventListener("change", appliquerFiltres)
+);
+
+document.getElementById("btn-passés").addEventListener("click", () => {
+  afficherPassés = !afficherPassés;
+  document.getElementById("btn-passés").classList.toggle("actif", afficherPassés);
+  document.getElementById("btn-passés").textContent = afficherPassés ? "Masquer les passés" : "Inclure les passés";
+  appliquerFiltres();
+});
+
+// ── Lancement ──
+chargerDonnees();
+</script>
+</body>
+</html>
