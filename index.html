@@ -11,6 +11,10 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -146,7 +150,7 @@
     z-index: 1000;
     min-width: 160px;
 
-    max-height: 220px;
+    max-height: 300px;
     overflow: auto;
     display: none;
     flex-direction: column;
@@ -363,7 +367,11 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 let tousLesConcerts = [];
 let afficherPasses  = false;
 let typesActifs     = new Set();
-let markersLayer    = L.layerGroup().addTo(map);
+let markersLayer = L.markerClusterGroup({
+  showCoverageOnHover: false,
+  spiderfyOnMaxZoom: true,
+  disableClusteringAtZoom: 16
+}).addTo(map);
 
 // ── Multi-select Type ──
 const typeBtn      = document.getElementById("type-multi-btn");
@@ -546,10 +554,10 @@ function appliquerFiltres() {
 }
 
 // ── Marqueurs ──
-// Picto unique : goutte orangée, sans icône ni emoji
+// Picto unique : goutte orangée
 function makeMarkerSvg(passe) {
   const fill   = passe ? MARKER_COLOR_PASSE : MARKER_COLOR;
-  const filter = passe ? 'filter:opacity(0.45)' : '';
+  const filter = passe ? 'filter:opacity(0.90)' : '';
   return `<div style="position:relative;width:28px;height:32px;">
     <svg viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:32px;${filter}">
       <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 18 14 18S28 23.33 28 14C28 6.27 21.73 0 14 0z"
