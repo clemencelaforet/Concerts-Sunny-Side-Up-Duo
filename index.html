@@ -3,342 +3,523 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Concerts</title>
+<title>Concerts – Sunny Side Up Duo</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-  /* ── Reset & base ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, sans-serif; background: #f5f4f0; color: #1a1a18; height: 100dvh; display: flex; flex-direction: column; }
 
-  /* ── En-tête ── */
-  header { background: #fff; border-bottom: 1px solid #e2e0d8; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  header h1 { font-size: 16px; font-weight: 600; white-space: nowrap; }
-
-  /* ── Panneau de filtres ── */
-  #filters { background: #fff; border-bottom: 1px solid #e2e0d8; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
-  .filter-group { display: flex; flex-direction: column; gap: 3px; }
-  .filter-group label { font-size: 11px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
-  .filter-group input, .filter-group select {
-    font-size: 13px; padding: 5px 8px; border: 1px solid #d4d2ca; border-radius: 6px;
-    background: #faf9f7; color: #1a1a18; height: 32px;
+  :root {
+    --ssu-sun:      #E8920A;
+    --ssu-sun-lt:   #FAC765;
+    --ssu-sky:      #3EA8C8;
+    --ssu-sky-lt:   #B8E0EF;
+    --ssu-wine:     #7A1E2E;
+    --ssu-wine-lt:  #C05068;
+    --ssu-green:    #3A7D44;
+    --ssu-purple:   #7F77DD;
+    --ssu-gray:     #888780;
+    --ssu-bg:       #F7F5F0;
+    --ssu-white:    #FFFFFF;
+    --ssu-text:     #1A1A18;
+    --ssu-muted:    #666560;
+    --ssu-border:   #E2DED4;
   }
-  .filter-group select { min-width: 130px; }
-  #btn-passés { font-size: 12px; padding: 5px 10px; height: 32px; border: 1px solid #d4d2ca; border-radius: 6px; background: #faf9f7; cursor: pointer; color: #555; white-space: nowrap; }
-  #btn-passés.actif { background: #1a1a18; color: #fff; border-color: #1a1a18; }
-  #compteur { font-size: 12px; color: #888; align-self: center; white-space: nowrap; margin-left: auto; }
 
-  /* ── Carte ── */
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--ssu-bg);
+    color: var(--ssu-text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--ssu-wine);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-sun {
+    width: 32px; height: 32px;
+    background: var(--ssu-sun);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px var(--ssu-sun-lt);
+  }
+  header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  header h1 span {
+    color: var(--ssu-sun-lt);
+  }
+
+  /* ── Filters ── */
+  #filters {
+    background: var(--ssu-white);
+    border-bottom: 1px solid var(--ssu-border);
+    padding: 10px 14px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .fg {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .fg label {
+    font-size: 10px;
+    color: var(--ssu-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .fg input, .fg select {
+    font-size: 12px;
+    padding: 4px 7px;
+    border: 1px solid var(--ssu-border);
+    border-radius: 6px;
+    background: var(--ssu-bg);
+    color: var(--ssu-text);
+    height: 30px;
+  }
+  .fg select { min-width: 110px; }
+
+  /* ── Multi-select type ── */
+  #type-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+  }
+  .type-pill {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 99px;
+    border: 1.5px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    background: var(--ssu-white);
+    user-select: none;
+  }
+  .type-pill.active {
+    color: #fff !important;
+  }
+
+  #btn-passes {
+    font-size: 11px;
+    padding: 4px 10px;
+    height: 30px;
+    border: 1px solid var(--ssu-border);
+    border-radius: 6px;
+    background: var(--ssu-bg);
+    cursor: pointer;
+    color: var(--ssu-muted);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  #btn-passes.actif {
+    background: var(--ssu-wine);
+    color: #fff;
+    border-color: var(--ssu-wine);
+  }
+  #compteur {
+    font-size: 11px;
+    color: var(--ssu-muted);
+    align-self: center;
+    white-space: nowrap;
+    margin-left: auto;
+    font-weight: 500;
+  }
+
+  /* ── Map ── */
   #map { flex: 1; }
 
-  /* ── Popup Leaflet ── */
-  .popup-inner { min-width: 200px; max-width: 280px; font-size: 13px; line-height: 1.5; }
-  .popup-inner .p-nom { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-  .popup-inner .p-dates { color: #555; margin-bottom: 6px; }
-  .popup-inner .p-type { display: inline-block; font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 99px; margin-bottom: 8px; }
-  .popup-inner .p-adresse { color: #444; margin-bottom: 8px; }
-  .popup-inner .p-liens a { display: inline-block; margin-right: 6px; margin-bottom: 4px; font-size: 12px; color: #185FA5; text-decoration: none; border: 1px solid #b5d4f4; border-radius: 4px; padding: 2px 7px; }
-  .popup-inner .p-liens a:hover { background: #e6f1fb; }
-  .popup-passé .p-nom { color: #888; }
-
-  /* ── Marqueurs passés grisés ── */
-  .marker-passé { filter: grayscale(1) opacity(0.55); }
+  /* ── Popup ── */
+  .popup-inner { min-width: 200px; max-width: 270px; font-size: 13px; line-height: 1.5; }
+  .p-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .p-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .p-nom { font-weight: 600; font-size: 14px; }
+  .p-dates { font-size: 12px; color: #666; margin-top: 1px; }
+  .p-type-badge {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 99px; margin-bottom: 7px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .p-adresse { font-size: 12px; color: #555; margin-bottom: 7px; }
+  .p-liens a {
+    display: inline-block; margin-right: 5px; margin-bottom: 4px;
+    font-size: 11px; font-weight: 500;
+    color: var(--ssu-sky); text-decoration: none;
+    border: 1px solid var(--ssu-sky-lt);
+    border-radius: 4px; padding: 2px 7px;
+  }
+  .p-liens a:hover { background: #EAF5FB; }
+  .popup-passe .p-nom { color: #999; }
 
   /* ── Loader ── */
-  #loader { position: absolute; inset: 0; background: rgba(245,244,240,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; font-size: 14px; color: #555; }
+  #loader {
+    position: absolute; inset: 0;
+    background: rgba(247,245,240,0.88);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999; gap: 10px;
+  }
   #loader.hidden { display: none; }
+  .loader-sun {
+    width: 40px; height: 40px;
+    background: var(--ssu-sun);
+    border-radius: 50%;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+  }
+  #loader p { font-size: 13px; color: var(--ssu-muted); }
+
+  /* ── Legend ── */
+  #legende {
+    position: absolute;
+    bottom: 28px; right: 10px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid var(--ssu-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    z-index: 999;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 110px;
+  }
+  .leg-item { display: flex; align-items: center; gap: 6px; }
+  .leg-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Leaflet popup override ── */
+  .leaflet-popup-content-wrapper { border-radius: 10px !important; box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important; }
+  .leaflet-popup-content { margin: 12px 14px !important; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1 id="titre-groupe">🎵 Concerts</h1>
+  <div class="header-sun">☀️</div>
+  <h1><span>Sunny Side Up</span> Duo — Concerts</h1>
 </header>
 
 <div id="filters">
-  <div class="filter-group">
+  <div class="fg">
     <label>Du</label>
-    <input type="date" id="f-date-debut">
+    <input type="date" id="f-debut">
   </div>
-  <div class="filter-group">
+  <div class="fg">
     <label>Au</label>
-    <input type="date" id="f-date-fin">
+    <input type="date" id="f-fin">
   </div>
-  <div class="filter-group">
+  <div class="fg">
     <label>Pays</label>
     <select id="f-pays"><option value="">Tous</option></select>
   </div>
-  <div class="filter-group">
+  <div class="fg">
     <label>Région</label>
     <select id="f-region"><option value="">Toutes</option></select>
   </div>
-  <div class="filter-group">
+  <div class="fg">
     <label>Département</label>
     <select id="f-dept"><option value="">Tous</option></select>
   </div>
-  <div class="filter-group">
+  <div class="fg">
     <label>Type</label>
-    <select id="f-type"><option value="">Tous</option></select>
+    <div id="type-pills"></div>
   </div>
-  <button id="btn-passés">Afficher les concerts passés</button>
+  <button id="btn-passes">☀ Afficher les concerts passés</button>
   <span id="compteur"></span>
 </div>
 
 <div id="map"></div>
-<div id="loader">Chargement des concerts…</div>
+<div id="loader">
+  <div class="loader-sun"></div>
+  <p>Chargement des concerts…</p>
+</div>
+<div id="legende"></div>
 
 <script>
-// ══════════════════════════════════════════════════
-//  ⚙️  CONFIGURATION — à modifier
-// ══════════════════════════════════════════════════
 const CONFIG = {
-  // ID de ton Google Sheets (dans l'URL : /d/XXXXXXXX/edit)
-  SHEET_ID: "1vP6q02BlHg2-sZ6VwElpf3Z76ADrK0FrY_avO5paQiw",
-
-  // Nom de l'onglet exact (sensible à la casse)
+  SHEET_ID:   "1vP6q02BlHg2-sZ6VwElpf3Z76ADrK0FrY_avO5paQiw",
   SHEET_NAME: "Concerts",
 
-  // Nom de ton groupe (affiché dans l'en-tête)
-  NOM_GROUPE: "Sunny Side Up Duo",
-
-  // Couleurs par type de concert (optionnel, complète selon tes valeurs)
-  COULEURS_TYPE: {
-    "Festival":  "#D85A30",
-    "Concert":   "#185FA5",
-    "Résidence": "#1D9E75",
-    "Showcase":  "#7F77DD",
-    "default":   "#888780"
+  TYPES: {
+    "Festival":   { color: "#E8920A", bg: "#FAC765", emoji: "🎪" },
+    "Concert":    { color: "#3EA8C8", bg: "#B8E0EF", emoji: "🎵" },
+    "Résidence":  { color: "#3A7D44", bg: "#9FE1A0", emoji: "🏠" },
+    "Showcase":   { color: "#7F77DD", bg: "#CECCF6", emoji: "🎤" },
+    "Bal":        { color: "#D4537E", bg: "#F4C0D1", emoji: "💃" },
+    "default":    { color: "#888780", bg: "#D3D1C7", emoji: "📍" }
   }
 };
-// ══════════════════════════════════════════════════
 
-document.querySelector("#titre-groupe").textContent = "🎵 " + "Concerts " + CONFIG.NOM_GROUPE;
-
-// ── Initialisation de la carte ──
 const map = L.map("map").setView([46.5, 2.5], 6);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
   maxZoom: 18
 }).addTo(map);
 
-// ── État global ──
 let tousLesConcerts = [];
-let afficherPassés  = false;
+let afficherPasses  = false;
+let typesActifs     = new Set();
 let markersLayer    = L.layerGroup().addTo(map);
 
-// ── Chargement depuis Google Sheets (CSV public) ──
+function getTypeConf(type) {
+  return CONFIG.TYPES[type] || CONFIG.TYPES["default"];
+}
+
+// ── Chargement ──
 async function chargerDonnees() {
   const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}`;
   try {
     const res  = await fetch(url);
     const text = await res.text();
     tousLesConcerts = parseCSV(text);
+    buildTypePills();
+    buildLegende();
     remplirFiltres();
     appliquerFiltres();
     document.getElementById("loader").classList.add("hidden");
   } catch(e) {
-    document.getElementById("loader").textContent = "Erreur de chargement. Vérifie l'ID du Sheets et que le partage est 'Lecteur'.";
+    document.getElementById("loader").innerHTML = '<p style="color:#c00;padding:20px;text-align:center">Erreur de chargement. Vérifie l\'ID du Sheets et le partage en lecture.</p>';
     console.error(e);
   }
 }
 
-// ── Parsing CSV simple (gère les guillemets) ──
+// ── CSV ──
 function parseCSV(text) {
   const lines  = text.trim().split("\n");
   const result = [];
-  // Ligne 0 = en-tête, on saute
   for (let i = 1; i < lines.length; i++) {
-    const cols = splitCSVLine(lines[i]);
-    const dateDebut = cols[0]?.trim().replace(/"/g,"") || "";
-    const dateFin   = cols[1]?.trim().replace(/"/g,"") || "";
-    const nom       = cols[2]?.trim().replace(/"/g,"") || "";
-    const ville     = cols[3]?.trim().replace(/"/g,"") || "";
-    const adresse   = cols[4]?.trim().replace(/"/g,"") || "";
-    const dept_numero      = cols[5]?.trim().replace(/"/g,"") || "";
-    const dept      = cols[6]?.trim().replace(/"/g,"") || "";
-    const region    = cols[7]?.trim().replace(/"/g,"") || "";
-    const pays      = cols[8]?.trim().replace(/"/g,"") || "";
-    const latRaw    = cols[9]?.trim().replace(/"/g,"") || "";
-    const lngRaw    = cols[10]?.trim().replace(/"/g,"") || "";
-    const type      = cols[11]?.trim().replace(/"/g,"") || "";
-    const liens     = cols[12]?.trim().replace(/"/g,"") || ""; // colonne Z = index 25
-
-    const lat = parseFloat(latRaw.replace(",","."));
-    const lng = parseFloat(lngRaw.replace(",","."));
-
+    const cols = splitCSV(lines[i]);
+    const g = (n) => cols[n]?.trim().replace(/^"|"$/g, "") || "";
+    const nom  = g(2); const latRaw = g(9); const lngRaw = g(10);
+    const lat  = parseFloat(latRaw.replace(",","."));
+    const lng  = parseFloat(lngRaw.replace(",","."));
     if (!nom || isNaN(lat) || isNaN(lng)) continue;
-
-    result.push({ dateDebut, dateFin, nom, ville, adresse, dept_numero, dept, region, pays, lat, lng, type, liens });
+    result.push({
+      dateDebut: g(0), dateFin: g(1), nom,
+      ville: g(3), adresse: g(4), dept: g(5),
+      region: g(6), pays: g(7), lat, lng,
+      type: g(11), liens: g(12)
+    });
   }
   return result;
 }
 
-function splitCSVLine(line) {
-  const result = []; let cur = ""; let inQ = false;
+function splitCSV(line) {
+  const r = []; let cur = ""; let inQ = false;
   for (let i = 0; i < line.length; i++) {
     if (line[i] === '"') { inQ = !inQ; }
-    else if (line[i] === "," && !inQ) { result.push(cur); cur = ""; }
+    else if (line[i] === "," && !inQ) { r.push(cur); cur = ""; }
     else cur += line[i];
   }
-  result.push(cur);
-  return result;
+  r.push(cur);
+  return r;
 }
 
-// ── Remplissage des listes déroulantes ──
-function remplirFiltres() {
-  const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
+// ── Pills types (multi-select) ──
+function buildTypePills() {
+  const types = [...new Set(tousLesConcerts.map(c => c.type).filter(Boolean))].sort();
+  const container = document.getElementById("type-pills");
+  container.innerHTML = "";
 
-  const pays    = uniq(tousLesConcerts.map(c => c.pays));
-  const regions = uniq(tousLesConcerts.map(c => c.region));
-  const types   = uniq(tousLesConcerts.map(c => c.type));
+  types.forEach(type => {
+    const conf = getTypeConf(type);
+    const pill = document.createElement("span");
+    pill.className = "type-pill";
+    pill.textContent = conf.emoji + " " + type;
+    pill.dataset.type = type;
+    pill.style.borderColor = conf.color;
+    pill.style.color = conf.color;
 
-  remplirSelect("f-pays",   pays);
-  remplirSelect("f-region", regions);
-  remplirSelect("f-type",   types);
-}
-
-function remplirSelect(id, valeurs) {
-  const sel = document.getElementById(id);
-  const actuelle = sel.value;
-  // Garde l'option "Tous"
-  while (sel.options.length > 1) sel.remove(1);
-  valeurs.forEach(v => {
-    const o = document.createElement("option");
-    o.value = v; o.textContent = v;
-    sel.appendChild(o);
+    pill.addEventListener("click", () => {
+      if (typesActifs.has(type)) {
+        typesActifs.delete(type);
+        pill.classList.remove("active");
+        pill.style.background = "white";
+        pill.style.color = conf.color;
+      } else {
+        typesActifs.add(type);
+        pill.classList.add("active");
+        pill.style.background = conf.color;
+        pill.style.color = "#fff";
+      }
+      appliquerFiltres();
+    });
+    container.appendChild(pill);
   });
-  if (actuelle) sel.value = actuelle;
 }
 
-// ── Mise à jour des départements selon la région choisie ──
-function mettreAJourDepts() {
-  const regionChoisie = document.getElementById("f-region").value;
-  const depts = [...new Set(
-    tousLesConcerts
-      .filter(c => !regionChoisie || c.region === regionChoisie)
-      .map(c => c.dept)
-      .filter(Boolean)
-  )].sort();
+// ── Légende ──
+function buildLegende() {
+  const types = [...new Set(tousLesConcerts.map(c => c.type).filter(Boolean))].sort();
+  const leg = document.getElementById("legende");
+  leg.innerHTML = types.map(type => {
+    const c = getTypeConf(type);
+    return `<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div><span style="font-size:11px">${c.emoji} ${type}</span></div>`;
+  }).join("");
+  const passDiv = document.createElement("div");
+  passDiv.className = "leg-item";
+  passDiv.innerHTML = `<div class="leg-dot" style="background:#bbb;opacity:0.5"></div><span style="font-size:11px;color:#999">Passé</span>`;
+  leg.appendChild(passDiv);
+}
+
+// ── Filtres sélects ──
+function remplirFiltres() {
+  const uniq = arr => [...new Set(arr.filter(Boolean))].sort();
+  remplirSelect("f-pays",   uniq(tousLesConcerts.map(c => c.pays)));
+  remplirSelect("f-region", uniq(tousLesConcerts.map(c => c.region)));
+}
+
+function remplirSelect(id, vals) {
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  while (sel.options.length > 1) sel.remove(1);
+  vals.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; sel.appendChild(o); });
+  if (cur) sel.value = cur;
+}
+
+function majDepts() {
+  const reg = document.getElementById("f-region").value;
+  const depts = [...new Set(tousLesConcerts.filter(c => !reg || c.region === reg).map(c => c.dept).filter(Boolean))].sort();
   remplirSelect("f-dept", depts);
 }
 
-// ── Application de tous les filtres ──
+// ── Filtres ──
 function appliquerFiltres() {
-  const fDateDebut = document.getElementById("f-date-debut").value;
-  const fDateFin   = document.getElementById("f-date-fin").value;
-  const fPays      = document.getElementById("f-pays").value;
-  const fRegion    = document.getElementById("f-region").value;
-  const fDept      = document.getElementById("f-dept").value;
-  const fType      = document.getElementById("f-type").value;
-  const aujourd   = new Date(); aujourd.setHours(0,0,0,0);
+  const fDebut  = document.getElementById("f-debut").value;
+  const fFin    = document.getElementById("f-fin").value;
+  const fPays   = document.getElementById("f-pays").value;
+  const fRegion = document.getElementById("f-region").value;
+  const fDept   = document.getElementById("f-dept").value;
+  const auj     = new Date(); auj.setHours(0,0,0,0);
 
   const filtres = tousLesConcerts.filter(c => {
-    const dDebut = parseDate(c.dateDebut);
-    const dFin   = parseDate(c.dateFin) || dDebut;
-    const estPassé = dFin < aujourd;
-
-    if (!afficherPassés && estPassé) return false;
-    if (fDateDebut && dDebut < new Date(fDateDebut)) return false;
-    if (fDateFin   && dDebut > new Date(fDateFin))   return false;
+    const dD = parseDate(c.dateDebut);
+    const dF = parseDate(c.dateFin) || dD;
+    if (!afficherPasses && dF < auj) return false;
+    if (fDebut && dD < new Date(fDebut)) return false;
+    if (fFin   && dD > new Date(fFin))   return false;
     if (fPays   && c.pays   !== fPays)   return false;
     if (fRegion && c.region !== fRegion) return false;
     if (fDept   && c.dept   !== fDept)   return false;
-    if (fType   && c.type   !== fType)   return false;
+    if (typesActifs.size > 0 && !typesActifs.has(c.type)) return false;
     return true;
   });
 
   afficherMarqueurs(filtres);
-  document.getElementById("compteur").textContent = `${filtres.length} concert${filtres.length > 1 ? "s" : ""}`;
+  const n = filtres.length;
+  document.getElementById("compteur").textContent = `${n} concert${n > 1 ? "s" : ""}`;
 }
 
-// ── Affichage des marqueurs ──
+// ── Marqueurs ──
 function afficherMarqueurs(concerts) {
   markersLayer.clearLayers();
   concerts.forEach(c => {
-    const aujourd = new Date(); aujourd.setHours(0,0,0,0);
-    const dFin    = parseDate(c.dateFin) || parseDate(c.dateDebut);
-    const estPassé = dFin < aujourd;
-    const couleur  = CONFIG.COULEURS_TYPE[c.type] || CONFIG.COULEURS_TYPE["default"];
+    const auj  = new Date(); auj.setHours(0,0,0,0);
+    const dF   = parseDate(c.dateFin) || parseDate(c.dateDebut);
+    const passe = dF < auj;
+    const conf  = getTypeConf(c.type);
 
     const icon = L.divIcon({
       className: "",
       html: `<div style="
-        width:14px; height:14px; border-radius:50%;
-        background:${estPassé ? "#aaa" : couleur};
-        border:2px solid ${estPassé ? "#888" : "#fff"};
-        box-shadow:0 1px 3px rgba(0,0,0,.3);
-        opacity:${estPassé ? 0.5 : 1};
-      "></div>`,
-      iconSize: [14,14], iconAnchor: [7,7]
+        position:relative;
+        width:28px; height:32px;
+      ">
+        <svg viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:32px;${passe ? 'filter:grayscale(1) opacity(0.45)' : ''}">
+          <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 18 14 18S28 23.33 28 14C28 6.27 21.73 0 14 0z"
+            fill="${passe ? '#aaa' : conf.color}" stroke="#fff" stroke-width="1.5"/>
+          <text x="14" y="16" text-anchor="middle" dominant-baseline="middle"
+            font-size="12" style="user-select:none">${passe ? '•' : conf.emoji}</text>
+        </svg>
+      </div>`,
+      iconSize: [28, 32], iconAnchor: [14, 32], popupAnchor: [0, -34]
     });
 
-    const marker = L.marker([c.lat, c.lng], { icon });
-
-    // Construction du popup
     const dates = c.dateFin && c.dateFin !== c.dateDebut
       ? `${formatDate(c.dateDebut)} → ${formatDate(c.dateFin)}`
       : formatDate(c.dateDebut);
 
-    const adresseFull = [c.adresse, c.ville, c.dept, c.region, c.pays].filter(Boolean).join(", ");
+    const lieu = [c.adresse, c.ville, c.dept, c.region, c.pays].filter(Boolean).join(", ");
 
     const liensHtml = c.liens
       ? c.liens.split(/[|;,\n]+/).map(l => {
-          l = l.trim();
-          if (!l) return "";
-          const label = l.includes("billet") ? "Billetterie" : l.includes("facebook") ? "Facebook" : "Lien";
+          l = l.trim(); if (!l) return "";
+          const label = l.includes("billet") ? "🎟 Billetterie"
+                      : l.includes("facebook") ? "📘 Facebook"
+                      : "🔗 Lien";
           return `<a href="${l}" target="_blank" rel="noopener">${label}</a>`;
         }).join("") : "";
 
-    const couleurType = CONFIG.COULEURS_TYPE[c.type] || CONFIG.COULEURS_TYPE["default"];
-    const popupHTML = `
-      <div class="popup-inner ${estPassé ? "popup-passé" : ""}">
-        <div class="p-nom">${c.nom}</div>
-        <div class="p-dates">${dates}</div>
-        ${c.type ? `<span class="p-type" style="background:${couleurType}22;color:${couleurType}">${c.type}</span>` : ""}
-        <div class="p-adresse">${adresseFull}</div>
+    const popup = `
+      <div class="popup-inner ${passe ? 'popup-passe' : ''}">
+        <div class="p-header">
+          <div class="p-icon" style="background:${passe ? '#eee' : conf.bg}">${passe ? '•' : conf.emoji}</div>
+          <div>
+            <div class="p-nom">${c.nom}</div>
+            <div class="p-dates">${dates}</div>
+          </div>
+        </div>
+        ${c.type ? `<span class="p-type-badge" style="background:${passe ? '#eee' : conf.bg};color:${passe ? '#aaa' : conf.color}">${c.type}</span>` : ""}
+        <div class="p-adresse">${lieu}</div>
         ${liensHtml ? `<div class="p-liens">${liensHtml}</div>` : ""}
       </div>`;
 
-    marker.bindPopup(popupHTML, { maxWidth: 300 });
-    markersLayer.addLayer(marker);
+    L.marker([c.lat, c.lng], { icon })
+      .bindPopup(popup, { maxWidth: 300 })
+      .addTo(markersLayer);
   });
 }
 
-// ── Utilitaires dates ──
+// ── Utils dates ──
 function parseDate(str) {
   if (!str) return null;
-  // Gère DD/MM/YYYY, YYYY-MM-DD, et formats Google Sheets
-  const d1 = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (d1) return new Date(`${d1[3]}-${d1[2]}-${d1[1]}`);
-  const d2 = new Date(str);
-  return isNaN(d2) ? null : d2;
+  const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}`);
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
 }
-
 function formatDate(str) {
   const d = parseDate(str);
   if (!d) return str;
   return d.toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
 }
 
-// ── Événements ──
-document.getElementById("f-region").addEventListener("change", () => {
-  mettreAJourDepts();
-  appliquerFiltres();
-});
-["f-date-debut","f-date-fin","f-pays","f-dept","f-type"].forEach(id =>
+// ── Events ──
+document.getElementById("f-region").addEventListener("change", () => { majDepts(); appliquerFiltres(); });
+["f-debut","f-fin","f-pays","f-dept"].forEach(id =>
   document.getElementById(id).addEventListener("change", appliquerFiltres)
 );
-
-document.getElementById("btn-passés").addEventListener("click", () => {
-  afficherPassés = !afficherPassés;
-  document.getElementById("btn-passés").classList.toggle("actif", afficherPassés);
-  document.getElementById("btn-passés").textContent = afficherPassés ? "Masquer les passés" : "Inclure les passés";
+document.getElementById("btn-passes").addEventListener("click", () => {
+  afficherPasses = !afficherPasses;
+  const btn = document.getElementById("btn-passes");
+  btn.classList.toggle("actif", afficherPasses);
+  btn.textContent = afficherPasses ? "☀ Masquer les concerts passés" : "☀ Afficher les concerts passés";
   appliquerFiltres();
 });
 
-// ── Lancement ──
 chargerDonnees();
 </script>
 </body>
