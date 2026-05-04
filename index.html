@@ -474,6 +474,7 @@ function remplirFiltres() {
   const uniq = arr => sortAlpha([...new Set(arr.filter(Boolean))]);
   remplirSelect("f-pays",   uniq(tousLesConcerts.map(c => c.pays)));
   remplirSelect("f-region", uniq(tousLesConcerts.map(c => c.region)));
+  remplirSelect("f-dept", uniq(tousLesConcerts.map(c => c.dept)));
 }
 
 function remplirSelect(id, vals) {
