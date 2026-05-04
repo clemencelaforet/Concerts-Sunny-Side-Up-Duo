@@ -153,16 +153,16 @@ function parseCSV(text) {
     const cols = splitCSVLine(lines[i]);
     const dateDebut = cols[0]?.trim().replace(/"/g,"") || "";
     const dateFin   = cols[1]?.trim().replace(/"/g,"") || "";
-    const nom       = cols[3]?.trim().replace(/"/g,"") || "";
-    const ville     = cols[4]?.trim().replace(/"/g,"") || "";
-    const adresse   = cols[5]?.trim().replace(/"/g,"") || "";
-    const dept      = cols[6]?.trim().replace(/"/g,"") || "";
-    const region    = cols[7]?.trim().replace(/"/g,"") || "";
-    const pays      = cols[8]?.trim().replace(/"/g,"") || "";
-    const latRaw    = cols[9]?.trim().replace(/"/g,"") || "";
-    const lngRaw    = cols[10]?.trim().replace(/"/g,"") || "";
-    const type      = cols[11]?.trim().replace(/"/g,"") || "";
-    const liens     = cols[25]?.trim().replace(/"/g,"") || ""; // colonne Z = index 25
+    const nom       = cols[2]?.trim().replace(/"/g,"") || "";
+    const ville     = cols[3]?.trim().replace(/"/g,"") || "";
+    const adresse   = cols[4]?.trim().replace(/"/g,"") || "";
+    const dept      = cols[5]?.trim().replace(/"/g,"") || "";
+    const region    = cols[6]?.trim().replace(/"/g,"") || "";
+    const pays      = cols[7]?.trim().replace(/"/g,"") || "";
+    const latRaw    = cols[8]?.trim().replace(/"/g,"") || "";
+    const lngRaw    = cols[9]?.trim().replace(/"/g,"") || "";
+    const type      = cols[10]?.trim().replace(/"/g,"") || "";
+    const liens     = cols[11]?.trim().replace(/"/g,"") || ""; // colonne Z = index 25
 
     const lat = parseFloat(latRaw.replace(",","."));
     const lng = parseFloat(lngRaw.replace(",","."));
