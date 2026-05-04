@@ -45,24 +45,40 @@
     align-items: center;
     gap: 10px;
   }
-  .header-sun {
-    width: 32px; height: 32px;
-    background: var(--ssu-sun);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
+  .header-logo-wrap {
+    width: 36px; height: 36px;
     flex-shrink: 0;
-    box-shadow: 0 0 0 3px var(--ssu-sun-lt);
+    cursor: pointer;
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
   }
+  .header-logo-wrap img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .header-logo-placeholder {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.18);
+    border: 1.5px dashed rgba(255,255,255,0.55);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .header-logo-placeholder:hover { background: rgba(255,255,255,0.28); }
+  .header-logo-placeholder svg { opacity: 0.8; }
+  #logo-input { display: none; }
   header h1 {
     font-size: 15px;
     font-weight: 600;
     color: #fff;
     letter-spacing: 0.02em;
   }
-  header h1 span {
-    color: var(--ssu-sun-lt);
-  }
+  header h1 span { color: var(--ssu-sun-lt); }
 
   /* ── Filters ── */
   #filters {
@@ -78,6 +94,7 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
+    position: relative;
   }
   .fg label {
     font-size: 10px;
@@ -97,28 +114,91 @@
   }
   .fg select { min-width: 110px; }
 
-  /* ── Multi-select type ── */
-  #type-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    align-items: center;
+  /* ── Multi-select dropdown ── */
+  .multi-select-wrap {
+    position: relative;
+    min-width: 130px;
   }
-  .type-pill {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 10px;
-    border-radius: 99px;
-    border: 1.5px solid;
+  .multi-select-btn {
+    font-size: 12px;
+    padding: 4px 22px 4px 7px;
+    border: 1px solid var(--ssu-border);
+    border-radius: 6px;
+    background: var(--ssu-bg);
+    color: var(--ssu-text);
+    height: 30px;
     cursor: pointer;
-    transition: all 0.15s;
     white-space: nowrap;
-    background: var(--ssu-white);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: left;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
     user-select: none;
   }
-  .type-pill.active {
-    color: #fff !important;
+  .multi-select-btn::after {
+    content: "▾";
+    font-size: 10px;
+    color: var(--ssu-muted);
+    flex-shrink: 0;
   }
+  .multi-select-btn.has-selection {
+    border-color: var(--ssu-sun);
+    background: #FEF6E8;
+    color: var(--ssu-sun);
+    font-weight: 600;
+  }
+  .multi-select-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: var(--ssu-white);
+    border: 1px solid var(--ssu-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 1000;
+    min-width: 160px;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+  }
+  .multi-select-dropdown.open { display: flex; }
+  .multi-select-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--ssu-text);
+    transition: background 0.1s;
+    white-space: nowrap;
+  }
+  .multi-select-option:hover { background: var(--ssu-bg); }
+  .multi-select-option input[type="checkbox"] {
+    accent-color: var(--ssu-sun);
+    width: 13px; height: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .multi-select-divider {
+    border: none;
+    border-top: 1px solid var(--ssu-border);
+    margin: 2px 0;
+  }
+  .multi-select-clear {
+    font-size: 11px;
+    color: var(--ssu-muted);
+    padding: 5px 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: color 0.1s;
+  }
+  .multi-select-clear:hover { color: var(--ssu-wine); }
 
   #btn-passes {
     font-size: 11px;
@@ -152,7 +232,6 @@
   /* ── Popup ── */
   .popup-inner { min-width: 200px; max-width: 270px; font-size: 13px; line-height: 1.5; }
   .p-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-  .p-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 1px; }
   .p-nom { font-weight: 600; font-size: 14px; }
   .p-dates { font-size: 12px; color: #666; margin-top: 1px; }
   .p-type-badge {
@@ -192,24 +271,6 @@
   }
   #loader p { font-size: 13px; color: var(--ssu-muted); }
 
-  /* ── Legend ── */
-  #legende {
-    position: absolute;
-    bottom: 28px; right: 10px;
-    background: rgba(255,255,255,0.95);
-    border: 1px solid var(--ssu-border);
-    border-radius: 10px;
-    padding: 8px 12px;
-    z-index: 999;
-    font-size: 11px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 110px;
-  }
-  .leg-item { display: flex; align-items: center; gap: 6px; }
-  .leg-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
-
   /* ── Leaflet popup override ── */
   .leaflet-popup-content-wrapper { border-radius: 10px !important; box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important; }
   .leaflet-popup-content { margin: 12px 14px !important; }
@@ -218,7 +279,12 @@
 <body>
 
 <header>
-  <div class="header-sun">☀️</div>
+  <!-- Logo -->
+    <div class="header-logo-placeholder" id="logo-placeholder" title="Cliquez pour uploader un logo">
+        <img src="SSU_Logo.png">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+    </div>
   <h1><span>Sunny Side Up</span> Duo — Concerts</h1>
 </header>
 
@@ -245,9 +311,14 @@
   </div>
   <div class="fg">
     <label>Type</label>
-    <div id="type-pills"></div>
+    <div class="multi-select-wrap" id="type-multi-wrap">
+      <div class="multi-select-btn" id="type-multi-btn">
+        <span id="type-multi-label">Tous</span>
+      </div>
+      <div class="multi-select-dropdown" id="type-multi-dropdown"></div>
+    </div>
   </div>
-  <button id="btn-passes">☀ Afficher les concerts passés</button>
+  <button id="btn-passes">Afficher les concerts passés</button>
   <span id="compteur"></span>
 </div>
 
@@ -256,7 +327,6 @@
   <div class="loader-sun"></div>
   <p>Chargement des concerts…</p>
 </div>
-<div id="legende"></div>
 
 <script>
 const CONFIG = {
@@ -273,6 +343,10 @@ const CONFIG = {
   }
 };
 
+// Couleur unique pour tous les pictos
+const MARKER_COLOR        = "#E8920A";
+const MARKER_COLOR_PASSE  = "#aaa";
+
 const map = L.map("map").setView([46.5, 2.5], 6);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
@@ -284,8 +358,96 @@ let afficherPasses  = false;
 let typesActifs     = new Set();
 let markersLayer    = L.layerGroup().addTo(map);
 
-function getTypeConf(type) {
-  return CONFIG.TYPES[type] || CONFIG.TYPES["default"];
+// ── Logo upload ──
+const logoPlaceholder = document.getElementById("logo-placeholder");
+const logoInput       = document.getElementById("logo-input");
+const logoArea        = document.getElementById("header-logo-area");
+
+logoPlaceholder.addEventListener("click", () => logoInput.click());
+logoInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    logoArea.innerHTML = `<div class="header-logo-wrap" id="logo-img-wrap" title="Cliquez pour changer le logo">
+      <img src="${ev.target.result}" alt="Logo" id="logo-img">
+    </div>`;
+    document.getElementById("logo-img-wrap").addEventListener("click", () => logoInput.click());
+  };
+  reader.readAsDataURL(file);
+});
+
+// ── Multi-select Type ──
+const typeBtn      = document.getElementById("type-multi-btn");
+const typeDropdown = document.getElementById("type-multi-dropdown");
+const typeLabel    = document.getElementById("type-multi-label");
+
+typeBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  typeDropdown.classList.toggle("open");
+});
+document.addEventListener("click", (e) => {
+  if (!document.getElementById("type-multi-wrap").contains(e.target)) {
+    typeDropdown.classList.remove("open");
+  }
+});
+
+function buildTypeDropdown() {
+  const types = [...new Set(tousLesConcerts.map(c => c.type).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
+  typeDropdown.innerHTML = "";
+
+  types.forEach(type => {
+    const item = document.createElement("label");
+    item.className = "multi-select-option";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.value = type;
+    cb.checked = typesActifs.has(type);
+    cb.addEventListener("change", () => {
+      if (cb.checked) typesActifs.add(type);
+      else typesActifs.delete(type);
+      updateTypeBtnLabel();
+      appliquerFiltres();
+    });
+    item.appendChild(cb);
+    item.appendChild(document.createTextNode(type));
+    typeDropdown.appendChild(item);
+  });
+
+  // Separateur + reset
+  const hr = document.createElement("hr");
+  hr.className = "multi-select-divider";
+  typeDropdown.appendChild(hr);
+
+  const clear = document.createElement("div");
+  clear.className = "multi-select-clear";
+  clear.textContent = "Tout effacer";
+  clear.addEventListener("click", () => {
+    typesActifs.clear();
+    typeDropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    updateTypeBtnLabel();
+    appliquerFiltres();
+  });
+  typeDropdown.appendChild(clear);
+}
+
+function updateTypeBtnLabel() {
+  if (typesActifs.size === 0) {
+    typeLabel.textContent = "Tous";
+    typeBtn.classList.remove("has-selection");
+  } else if (typesActifs.size === 1) {
+    typeLabel.textContent = [...typesActifs][0];
+    typeBtn.classList.add("has-selection");
+  } else {
+    typeLabel.textContent = `${typesActifs.size} types`;
+    typeBtn.classList.add("has-selection");
+  }
+}
+
+// ── Tri alphabétique avec accents ──
+function sortAlpha(arr) {
+  return [...arr].sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
 }
 
 // ── Chargement ──
@@ -295,8 +457,7 @@ async function chargerDonnees() {
     const res  = await fetch(url);
     const text = await res.text();
     tousLesConcerts = parseCSV(text);
-    buildTypePills();
-    buildLegende();
+    buildTypeDropdown();
     remplirFiltres();
     appliquerFiltres();
     document.getElementById("loader").classList.add("hidden");
@@ -307,20 +468,27 @@ async function chargerDonnees() {
 }
 
 // ── CSV ──
+// Colonnes : 0=dateDebut, 1=dateFin, 2=nom, 3=ville, 4=adresse,
+//            5=dept_numero, 6=dept, 7=region, 8=pays,
+//            9=lat, 10=lng, 11=type, 12=liens
 function parseCSV(text) {
   const lines  = text.trim().split("\n");
   const result = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = splitCSV(lines[i]);
     const g = (n) => cols[n]?.trim().replace(/^"|"$/g, "") || "";
-    const nom  = g(2); const latRaw = g(9); const lngRaw = g(10);
-    const lat  = parseFloat(latRaw.replace(",","."));
-    const lng  = parseFloat(lngRaw.replace(",","."));
+    const nom    = g(2);
+    const latRaw = g(9);
+    const lngRaw = g(10);
+    const lat    = parseFloat(latRaw.replace(",","."));
+    const lng    = parseFloat(lngRaw.replace(",","."));
     if (!nom || isNaN(lat) || isNaN(lng)) continue;
     result.push({
       dateDebut: g(0), dateFin: g(1), nom,
-      ville: g(3), adresse: g(4), dept: g(5),
-      region: g(6), pays: g(7), lat, lng,
+      ville: g(3), adresse: g(4),
+      dept_numero: g(5), dept: g(6),
+      region: g(7), pays: g(8),
+      lat, lng,
       type: g(11), liens: g(12)
     });
   }
@@ -338,56 +506,9 @@ function splitCSV(line) {
   return r;
 }
 
-// ── Pills types (multi-select) ──
-function buildTypePills() {
-  const types = [...new Set(tousLesConcerts.map(c => c.type).filter(Boolean))].sort();
-  const container = document.getElementById("type-pills");
-  container.innerHTML = "";
-
-  types.forEach(type => {
-    const conf = getTypeConf(type);
-    const pill = document.createElement("span");
-    pill.className = "type-pill";
-    pill.textContent = conf.emoji + " " + type;
-    pill.dataset.type = type;
-    pill.style.borderColor = conf.color;
-    pill.style.color = conf.color;
-
-    pill.addEventListener("click", () => {
-      if (typesActifs.has(type)) {
-        typesActifs.delete(type);
-        pill.classList.remove("active");
-        pill.style.background = "white";
-        pill.style.color = conf.color;
-      } else {
-        typesActifs.add(type);
-        pill.classList.add("active");
-        pill.style.background = conf.color;
-        pill.style.color = "#fff";
-      }
-      appliquerFiltres();
-    });
-    container.appendChild(pill);
-  });
-}
-
-// ── Légende ──
-function buildLegende() {
-  const types = [...new Set(tousLesConcerts.map(c => c.type).filter(Boolean))].sort();
-  const leg = document.getElementById("legende");
-  leg.innerHTML = types.map(type => {
-    const c = getTypeConf(type);
-    return `<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div><span style="font-size:11px">${c.emoji} ${type}</span></div>`;
-  }).join("");
-  const passDiv = document.createElement("div");
-  passDiv.className = "leg-item";
-  passDiv.innerHTML = `<div class="leg-dot" style="background:#bbb;opacity:0.5"></div><span style="font-size:11px;color:#999">Passé</span>`;
-  leg.appendChild(passDiv);
-}
-
 // ── Filtres sélects ──
 function remplirFiltres() {
-  const uniq = arr => [...new Set(arr.filter(Boolean))].sort();
+  const uniq = arr => sortAlpha([...new Set(arr.filter(Boolean))]);
   remplirSelect("f-pays",   uniq(tousLesConcerts.map(c => c.pays)));
   remplirSelect("f-region", uniq(tousLesConcerts.map(c => c.region)));
 }
@@ -401,8 +522,10 @@ function remplirSelect(id, vals) {
 }
 
 function majDepts() {
-  const reg = document.getElementById("f-region").value;
-  const depts = [...new Set(tousLesConcerts.filter(c => !reg || c.region === reg).map(c => c.dept).filter(Boolean))].sort();
+  const reg   = document.getElementById("f-region").value;
+  const depts = sortAlpha([...new Set(
+    tousLesConcerts.filter(c => !reg || c.region === reg).map(c => c.dept).filter(Boolean)
+  )]);
   remplirSelect("f-dept", depts);
 }
 
@@ -434,27 +557,30 @@ function appliquerFiltres() {
 }
 
 // ── Marqueurs ──
+// Picto unique : goutte orangée, sans icône ni emoji
+function makeMarkerSvg(passe) {
+  const fill   = passe ? MARKER_COLOR_PASSE : MARKER_COLOR;
+  const filter = passe ? 'filter:opacity(0.45)' : '';
+  return `<div style="position:relative;width:28px;height:32px;">
+    <svg viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:32px;${filter}">
+      <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 18 14 18S28 23.33 28 14C28 6.27 21.73 0 14 0z"
+        fill="${fill}" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="14" cy="13" r="4" fill="rgba(255,255,255,0.35)"/>
+    </svg>
+  </div>`;
+}
+
 function afficherMarqueurs(concerts) {
   markersLayer.clearLayers();
   concerts.forEach(c => {
-    const auj  = new Date(); auj.setHours(0,0,0,0);
-    const dF   = parseDate(c.dateFin) || parseDate(c.dateDebut);
+    const auj   = new Date(); auj.setHours(0,0,0,0);
+    const dF    = parseDate(c.dateFin) || parseDate(c.dateDebut);
     const passe = dF < auj;
-    const conf  = getTypeConf(c.type);
+    const conf  = CONFIG.TYPES[c.type] || CONFIG.TYPES["default"];
 
     const icon = L.divIcon({
       className: "",
-      html: `<div style="
-        position:relative;
-        width:28px; height:32px;
-      ">
-        <svg viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:32px;${passe ? 'filter:grayscale(1) opacity(0.45)' : ''}">
-          <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 18 14 18S28 23.33 28 14C28 6.27 21.73 0 14 0z"
-            fill="${passe ? '#aaa' : conf.color}" stroke="#fff" stroke-width="1.5"/>
-          <text x="14" y="16" text-anchor="middle" dominant-baseline="middle"
-            font-size="12" style="user-select:none">${passe ? '•' : conf.emoji}</text>
-        </svg>
-      </div>`,
+      html: makeMarkerSvg(passe),
       iconSize: [28, 32], iconAnchor: [14, 32], popupAnchor: [0, -34]
     });
 
@@ -476,7 +602,6 @@ function afficherMarqueurs(concerts) {
     const popup = `
       <div class="popup-inner ${passe ? 'popup-passe' : ''}">
         <div class="p-header">
-          <div class="p-icon" style="background:${passe ? '#eee' : conf.bg}">${passe ? '•' : conf.emoji}</div>
           <div>
             <div class="p-nom">${c.nom}</div>
             <div class="p-dates">${dates}</div>
@@ -516,7 +641,7 @@ document.getElementById("btn-passes").addEventListener("click", () => {
   afficherPasses = !afficherPasses;
   const btn = document.getElementById("btn-passes");
   btn.classList.toggle("actif", afficherPasses);
-  btn.textContent = afficherPasses ? "☀ Masquer les concerts passés" : "☀ Afficher les concerts passés";
+  btn.textContent = afficherPasses ? "Masquer les concerts passés" : "Afficher les concerts passés";
   appliquerFiltres();
 });
 
