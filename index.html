@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -330,6 +333,28 @@ const MARKER_COLOR        = "#E8920A";
 const MARKER_COLOR_PASSE  = "#aaa";
 
 const map = L.map("map").setView([46.5, 2.5], 6);
+
+const geocoder = L.Control.geocoder({
+  defaultMarkGeocode: false
+})
+.on('markgeocode', function(e) {
+  const bbox = e.geocode.bbox;
+
+  // 🔵 zoom automatique sur le résultat
+  map.fitBounds(bbox);
+
+  // 📍 marker sur le résultat
+  const center = e.geocode.center;
+
+  L.marker(center)
+    .addTo(map)
+    .bindPopup(e.geocode.name)
+    .openPopup();
+})
+.addTo(map);
+
+geocoder.setPosition('topleft');
+
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
   maxZoom: 18
